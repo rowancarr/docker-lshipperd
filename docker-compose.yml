@@ -1,0 +1,30 @@
+version: '2'
+services:
+  test_box:
+    image: nginx:alpine
+    ports:
+      - 8081:80
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "192.168.99.100:24224"
+        tag: "nginx.docker"
+  shipr:
+    build: shipr
+    environment:
+      - ELASTICSEARCH_ADDR=$${host elasticsearch}
+    volumes:
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - 24224:24224
+  elasticsearch:
+    image: elasticsearch
+    command: elasticsearch -Des.network.host=0.0.0.0
+  kibana:
+    image: kibana
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
